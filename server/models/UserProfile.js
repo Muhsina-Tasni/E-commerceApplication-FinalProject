@@ -13,10 +13,10 @@ const userProfileSchema=new mongoose.Schema({
     },
     dob:{
         type:Date,
-        required:"true"
+        required:true
     },
     gender:{
-        type:"string",
+        type:String,
         required:true
 
     }
