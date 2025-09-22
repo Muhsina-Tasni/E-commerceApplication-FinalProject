@@ -1,18 +1,37 @@
-import {BrowserRouter, Routes} from "react-router-dom"
-import './App.css'
+// import {BrowserRouter, Routes} from "react-router-dom"
+// import './App.css'
 
-function App() {
+// function App() {
 
 
-  return (
+//   return (
     
-      <BrowserRouter>
-      <Routes>
-        {/* <Route></Route> */}
-      </Routes>
-      </BrowserRouter>
+//       <BrowserRouter>
+//       <Routes>
+//         {/* <Route></Route> */}
+//       </Routes>
+//       </BrowserRouter>
    
+//   )
+// }
+
+// export default App
+
+
+import React from 'react'
+import AppRoutes from './routes/AppRoutes'
+import { AuthProvider } from './context/AuthContext'
+
+const App = () => {
+  return (
+    <div>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+
+    </div>
   )
 }
 
 export default App
+
