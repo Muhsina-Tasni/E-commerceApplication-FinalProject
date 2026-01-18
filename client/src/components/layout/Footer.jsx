@@ -100,7 +100,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <h3 className="text-2xl font-serif text-stone-800 mb-4">
-              BookSaw
+              PAGE TURNER
             </h3>
             <p className="text-sm text-stone-500 leading-relaxed">
               A curated digital library where timeless stories and modern
