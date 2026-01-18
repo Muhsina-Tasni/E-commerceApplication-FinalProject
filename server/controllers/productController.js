@@ -2,25 +2,30 @@ const Product = require("../models/Product");
 const httpStatus = require("../constants/httpStatus");
 const messages = require("../constants/messages");
 
+
+
 const createProduct = async (req, res) => {
   try {
-    const { name, description, price, stock, category_id } = req.body;
-    const product = new Product({ name, description, price, stock, category_id });
+    const { name, description, price, stock, category_id, image } = req.body;
+    const product = new Product({ name, description, price, stock, category_id, image });
     await product.save();
     res.status(httpStatus.CREATED).json({ message: messages.PRODUCT_CREATED, product });
   } catch (err) {
+    console.error(err);
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err.message });
   }
 };
 
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().populate("category_id", "name");
     res.status(httpStatus.OK).json(products);
   } catch (err) {
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err.message });
   }
 };
+
+
 
 const getProductById = async (req, res) => {
   try {

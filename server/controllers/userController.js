@@ -4,100 +4,71 @@ const jwt = require("jsonwebtoken");
 const httpStatus = require("../constants/httpStatus");
 const messages = require("../constants/messages");
 
-// Register User
-// const registerUser = async (req, res) => {
-//   try {
-//     const { name, email, password, role } = req.body;
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser)
-//       return res.status(httpStatus.BAD_REQUEST).json({ message: messages.USER_ALREADY_EXISTS });
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // const user = new User({ name, email, password: hashedPassword, role });
-//     // await user.save();
-
-//     const registered = await User.create({ name, email, password: hashedPassword ,role});
 
 
-//     res.status(httpStatus.CREATED).json({ message: messages.USER_REGISTERED, registered });
-//   } catch (err) {
-//     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err.message });
-//   }
-// };
 
 
-// const registerUser = async (req, res) => {
-//   try {
-//     const { name, email, password, role } = req.body;
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser)
-//       return res.status(httpStatus.BAD_REQUEST).json({ message: messages.USER_ALREADY_EXISTS });
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     const registered = await User.create({ name, email, password: hashedPassword, role });
-
-//     res.status(httpStatus.CREATED).json({ message: messages.USER_REGISTERED, registered });
-//   } catch (err) {
-//     console.error("Register backend error:", err); // 👈 log full error
-//     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err.message });
-//   }
-// };
-
-
-// controllers/authController.js (example)
+// Register
 const registerUser = async (req, res) => {
   try {
-    console.log("Register API hit:", req.body);
+    const { name, email, password, role } = req.body;
 
-    const { name, email, password } = req.body;
-
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(httpStatus.BAD_REQUEST).json({ message: messages.USER_ALREADY_EXISTS });
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashed = await bcrypt.hash(password, salt);
 
-    user = new User({ name, email, password: hashedPassword });
+    const user = new User({ name, email, password: hashed, role: role || "user" });
     await user.save();
 
-    res.status(201).json({ message: "User registered successfully", user });
+    const userSafe = user.toObject();
+    delete userSafe.password;
+
+    res.status(httpStatus.CREATED).json({ message: messages.USER_REGISTERED, user: userSafe });
   } catch (err) {
-    console.error("🔥 Backend registration error:", err); // 👈 log full error
-    res.status(500).json({ message: err.message || "Registration failed" });
+    console.error("Register error:", err);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err.message || "Registration failed" });
   }
 };
 
-
-
-
-// Login User
+// Login
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(httpStatus.BAD_REQUEST).json({ message: messages.INVALID_CREDENTIALS });
+    if (!user) return res.status(httpStatus.BAD_REQUEST).json({ message: messages.INVALID_CREDENTIALS });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(httpStatus.BAD_REQUEST).json({ message: messages.INVALID_CREDENTIALS });
+    if (!isMatch) return res.status(httpStatus.BAD_REQUEST).json({ message: messages.INVALID_CREDENTIALS });
 
-    // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    // res.status(httpStatus.OK).json({ token, user });
-     const payload={user:{id:user.id}}
-   const token=jwt.sign(payload, process.env.JWT_SECRET,{expiresIn:'1d'})
-   res.status(httpStatus.OK).json({ token, user });
+    // Sign token with flat id field
+    const payload = { id: user._id };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
+    const userSafe = user.toObject();
+    delete userSafe.password;
 
+    res.status(httpStatus.OK).json({ token, user: userSafe });
   } catch (err) {
+    console.error("Login error:", err);
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err.message });
   }
 };
 
-// Get all users
+
+
+
+
+
+
+
+
+
+
+//@desc    Get all user
+//@route   GET /api/users
+//@access  Admin
 const getUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -107,7 +78,9 @@ const getUsers = async (req, res) => {
   }
 };
 
-// Get single user
+//@desc    Get user by id
+//@route   POST /api/users/id
+//@access  Admin/User
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -119,7 +92,9 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Update user
+//@desc    Update user
+//@route   PUT /api/users/id
+//@access  Amin/User
 const updateUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -131,7 +106,9 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Delete user
+//@desc    Delete user
+//@route   DELETE /api/users/id
+//@access  Admin
 const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -144,3 +121,8 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = { registerUser, loginUser, getUsers, getUserById, updateUser, deleteUser };
+
+
+
+
+

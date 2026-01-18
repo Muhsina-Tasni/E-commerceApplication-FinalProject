@@ -1,5 +1,4 @@
 
-
 import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
@@ -12,58 +11,105 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      await handleLogin(form);
-      navigate("/"); // redirect to ProductList page
-    } catch (err) {
-      setError("Invalid credentials, please try again.");
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError("");
+  //   try {
+  //     await handleLogin(form);
+  //     navigate("/products");
+  //   } catch (err) {
+  //     setError("Invalid credentials. Please try again.");
+  //   }
+  // };
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+
+  try {
+    const user = await handleLogin(form); // 👈 get user back
+
+    // ✅ ROLE BASED REDIRECT
+    if (user.role === "admin") {
+      navigate("/adminpage");
+    } else {
+      navigate("/products");
     }
-  };
+  } catch (err) {
+    setError("Invalid credentials. Please try again.");
+  }
+};
+
+
+
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="min-h-screen bg-stone-100 flex items-center justify-center px-4">
+      
+      {/* Card */}
+      <div className="w-full max-w-md bg-white shadow-2xl p-10 border border-stone-200 my-10">
+        
+        {/* Heading */}
+        <h2 className="text-3xl font-serif text-stone-800 text-center mb-2">
+          Welcome Back
+        </h2>
+        <p className="text-center text-stone-500 mb-8">
+          Sign in to continue exploring books
+        </p>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        {/* Error */}
+        {error && (
+          <p className="text-red-500 text-sm text-center mb-4">
+            {error}
+          </p>
+        )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* Email */}
           <InputField
-            label="Email"
             type="email"
             name="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="Enter your email"
+            placeholder="Email address"
             required
+            className="w-full border-b border-stone-300 px-1 py-1 focus:outline-none focus:border-amber-600"
           />
 
+          {/* Password */}
           <InputField
-            label="Password"
             type="password"
             name="password"
             value={form.password}
             onChange={handleChange}
-            placeholder="Enter your password"
+            placeholder="Password"
             required
+            className="w-full border-b border-stone-300 px-1 py-1 focus:outline-none focus:border-amber-600"
           />
 
-          <Button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-lg">
+          {/* Button */}
+          <Button
+            type="submit"
+            className="w-full mt-6 border border-amber-600 text-amber-600 py-1 hover:bg-amber-600 hover:text-white transition-all duration-300"
+          >
             Login
           </Button>
         </form>
 
-        <p className="text-sm text-center mt-4">
+        {/* Footer */}
+        <p className="text-sm text-center mt-8 text-stone-500">
           Don’t have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Register now
+          <Link
+            to="/register"
+            className="text-amber-600 hover:underline font-medium"
+          >
+            Register here
           </Link>
         </p>
       </div>
@@ -72,3 +118,4 @@ const Login = () => {
 };
 
 export default Login;
+

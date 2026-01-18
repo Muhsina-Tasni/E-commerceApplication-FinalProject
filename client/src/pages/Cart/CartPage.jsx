@@ -1,94 +1,135 @@
-import { useEffect, useState, useContext } from "react";
-import { getCart, updateCartItem, removeCartItem } from "../../api/cartApi";
-import Button from "../../components/common/Button";
+
+
+import { useNavigate, Link } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
+import CartItem from "../../pages/Cart/CartItem";
+import {
+  getCartItemsByUser,
+  updateCartItem,
+  removeCartItem,
+} from "../../api/cartItemApi";
 
 const CartPage = () => {
-  const { user } = useContext(AuthContext);  
+  const { user } = useContext(AuthContext);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [clearing, setClearing] = useState(false);
+const navigate = useNavigate();
+
+
 
   useEffect(() => {
     const fetchCart = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       try {
-        const res = await getCart(user._id); 
-        setCartItems(res.data || []);
-      } catch (error) {
-        setMessage("Failed to load cart");
+        const items = await getCartItemsByUser(user._id);
+        setCartItems(items);
+      } catch (err) {
+        console.error("Fetch cart failed:", err);
       } finally {
         setLoading(false);
       }
     };
-    if (user?._id) fetchCart();
+    fetchCart();
   }, [user]);
 
-  const handleUpdate = async (productId, qty) => {
+  // Update quantity of a cart item
+  const changeQty = async (itemId, qty) => {
+    if (qty < 1) return;
     try {
-      await updateCartItem(user._id, productId, qty);
+      await updateCartItem(itemId, qty);
       setCartItems((prev) =>
-        prev.map((item) =>
-          item.product._id === productId ? { ...item, quantity: qty } : item
-        )
+        prev.map((i) => (i._id === itemId ? { ...i, quantity: qty } : i))
       );
-    } catch {
-      setMessage("Update failed");
+    } catch (err) {
+      console.error("Update qty failed:", err);
     }
   };
 
-  const handleRemove = async (productId) => {
+  // Remove single item
+  const handleRemove = async (id) => {
     try {
-      await removeCartItem(user._id, productId);
-      setCartItems((prev) => prev.filter((item) => item.product._id !== productId));
-    } catch {
-      setMessage("Remove failed");
+      await removeCartItem(id);
+      setCartItems((prev) => prev.filter((i) => i._id !== id));
+    } catch (err) {
+      console.error("Remove failed:", err);
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  // Clear entire cart
+  const handleClearCart = async () => {
+    if (!cartItems.length) return;
+    setClearing(true);
+    try {
+      await Promise.all(cartItems.map((i) => removeCartItem(i._id)));
+      setCartItems([]);
+    } catch (err) {
+      console.error("Clear cart failed:", err);
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  // Total price of cart
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + item.quantity * (item.product?.price || 0),
+    0
+  );
+
+  if (loading) return <div className="p-4">Loading cart...</div>;
+  if (!user) return <div className="p-4">Please login to view your cart.</div>;
+  if (!cartItems.length) return <div className="p-4">Your cart is empty.</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Your Cart</h2>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Your Cart</h1>
 
-      {message && <p className="mb-4 text-red-500">{message}</p>}
+      {/* Cart Items */}
+      {cartItems.map((item) => (
+        <CartItem
+          key={item._id}
+          item={item}
+          updateQuantity={changeQty}
+          removeItem={handleRemove}
+        />
+      ))}
 
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty.</p>
-      ) : (
-        <ul className="space-y-4">
-          {cartItems.map((item) => (
-            <li key={item._id} className="flex items-center justify-between border p-4 rounded-lg">
-              <div>
-                <h3 className="font-semibold">{item.product.name}</h3>
-                <p className="text-gray-600">
-                  ${item.product.price} × {item.quantity}
-                </p>
-                <p className="font-bold">
-                  Total: ${(item.product.price * item.quantity).toFixed(2)}
-                </p>
-              </div>
+      {/* Total and actions */}
+      <div className="mt-6 flex flex-col md:flex-row md:justify-between items-center bg-gray-100 p-4 rounded-lg shadow">
+        <div className="text-xl font-semibold mb-4 md:mb-0">
+          Total: ₹{totalPrice.toFixed(2)}
+        </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) =>
-                    handleUpdate(item.product._id, Number(e.target.value))
-                  }
-                  className="w-16 border rounded px-2 py-1"
-                />
-                <Button
-                  label="Remove"
-                  variant="danger"
-                  onClick={() => handleRemove(item.product._id)}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+        <div className="flex gap-4">
+          <button
+            onClick={handleClearCart}
+            disabled={clearing}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+          >
+            {clearing ? "Clearing..." : "Clear Cart"}
+          </button>
+
+          {/* <button
+            onClick={() => alert("Proceeding to checkout...")}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+          >
+            Proceed to Checkout
+          </button> */}
+<button
+  onClick={() => navigate("/checkout")}
+  className="px-4 py-2 bg-green-600 text-white rounded"
+>
+  Proceed to Checkout
+</button>
+
+
+
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,64 +1,124 @@
-import { useContext, useEffect, useState } from "react";
-import { getProducts } from "../../api/productApi";
-import Button from "../../components/common/Button";
-import { addToCart } from "../../api/cartApi";
+
+import { useState, useEffect, useContext } from "react";
+import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
+import ProductCard from "../../components/common/ProductCard"
 
 const ProductList = () => {
-    const { user } = useContext(AuthContext);  
+  const { token } = useContext(AuthContext);
   const [products, setProducts] = useState([]);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await getProducts();
-        
-        setProducts(response.data || []);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+        const res = await axios.get("http://localhost:7000/api/product", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProducts(res.data);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
       }
     };
     fetchProducts();
-  }, []);
-
-  const handleAddToCart = async (productId) => {
-  try {
-    const res = await addToCart(user._id,productId, 1);
-    console.log(res,'cart');
-    
-    if (res.data) {
-      setMessage(res.data);
-    } else {
-      setMessage("Item added to cart");
-    }
-  } catch (error) {
-    setMessage(error.message || "Failed to add item");
-  }
-};
+  }, [token]);
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Product List</h2>
-     {message && <p className="mb-4 text-green-600">{String(message)}</p>}
-      <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {products?.map((product) => (
-          <li key={product._id} className="border p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold">{product.name}</h3>
-            <p>{product.description}</p>
-            <p className="font-bold">₹ {product.price}</p>
-            <Button
-              className="mt-2 px-4 py-2 rounded"
-              onClick={() => handleAddToCart(product._id)}
-            >Add to cart</Button>
-          </li>
-        ))}
-      </ul>
+    <div className="min-h-screen  bg-stone-100 p-8">
+      <h2 className="text-2xl font-bold mb-6 text-center">Products</h2>
+      {products.length === 0 ? (
+        <p className="text-center text-gray-600">No products available</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
 export default ProductList;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { useContext, useEffect, useState } from "react";
+// import { getProducts } from "../../api/productApi";
+// import Button from "../../components/common/Button";
+// import { addToCart } from "../../api/cartApi";
+// import { AuthContext } from "../../context/AuthContext";
+
+// const ProductList = () => {
+//     const { user } = useContext(AuthContext);  
+//   const [products, setProducts] = useState([]);
+//   const [message, setMessage] = useState("");
+
+//   useEffect(() => {
+//     const fetchProducts = async () => {
+//       try {
+//         const response = await getProducts();
+        
+//         setProducts(response.data || []);
+//       } catch (error) {
+//         console.error("Error fetching products:", error);
+//       }
+//     };
+//     fetchProducts();
+//   }, []);
+
+//   const handleAddToCart = async (productId) => {
+//   try {
+//     const res = await addToCart(user._id,productId, 1);
+//     console.log(res,'cart');
+    
+//     if (res.data) {
+//       setMessage(res.data);
+//     } else {
+//       setMessage("Item added to cart");
+//     }
+//   } catch (error) {
+//     setMessage(error.message || "Failed to add item");
+//   }
+// };
+
+//   return (
+//     <div className="p-6">
+//       <h2 className="text-xl font-bold mb-4">Product List</h2>
+//      {message && <p className="mb-4 text-green-600">{String(message)}</p>}
+//       <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//         {products?.map((product) => (
+//           <li key={product._id} className="border p-4 rounded-lg shadow-md">
+//             <h3 className="text-lg font-semibold">{product.name}</h3>
+//             <p>{product.description}</p>
+//             <p className="font-bold">₹ {product.price}</p>
+//             <Button
+//               className="mt-2 px-4 py-2 rounded"
+//               onClick={() => handleAddToCart(product._id)}
+//             >Add to cart</Button>
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// };
+
+// export default ProductList;
 
 
 

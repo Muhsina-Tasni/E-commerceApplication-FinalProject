@@ -1,12 +1,18 @@
+
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Swal from "sweetalert2";
 import { registerUser } from "../../api/authApi";
-import InputField from "../../components/forms/InputFields";
-import Button from "../../components/common/Button";
 
 const Register = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "user",
+  });
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -15,82 +21,104 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
-try {
-  const result = await registerUser(form);
-  console.log("Registration success:", result);
-  navigate("/login");
-} catch (err) {
-  console.error("Registration failed:", err);
-  setError(err?.message || "Registration failed, try again.");
-}
-    console.log("Form submitted:", form);
+    try {
+      await registerUser(form);
 
+      Swal.fire({
+        toast: true,
+        position: "top",
+        timer: 3000,
+        showConfirmButton: false,
+        icon: "success",
+        title: "Account created successfully 📚",
+      });
+
+      navigate("/login");
+    } catch (err) {
+      Swal.fire({
+        title: "Registration Failed",
+        text: err?.message || "Please try again",
+        icon: "error",
+      });
+    }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
+    <section className="min-h-screen bg-stone-100 flex items-center justify-center px-6">
+      <div className="w-full max-w-md bg-white border border-stone-200 shadow-xl p-10 my-10">
+        
+        {/* Heading */}
+        <h2 className="text-3xl font-serif text-stone-800 text-center mb-2">
+          Join Our Library
+        </h2>
+        <p className="text-center text-stone-500 mb-8">
+          Create your account to explore timeless books
+        </p>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-        <form onSubmit={handleSubmit}>
-          <InputField
-            label="Name"
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5 ">
+          <input
+            required
             type="text"
             name="name"
+            placeholder="Full Name"
             value={form.name}
             onChange={handleChange}
-            placeholder="Enter your name"
-            required
+            className="w-full border-b border-stone-300 px-4 py-1 text-sm focus:outline-none focus:border-amber-600"
           />
 
-          <InputField
-            label="Email"
+          <input
+            required
             type="email"
             name="email"
+            placeholder="Email Address"
             value={form.email}
             onChange={handleChange}
-            placeholder="Enter your email"
-            required
+            className="w-full border-b border-stone-300 px-4 py-1 text-sm focus:outline-none focus:border-amber-600"
           />
 
-          <InputField
-            label="Password"
+          <input
+            required
             type="password"
             name="password"
+            placeholder="Password"
             value={form.password}
             onChange={handleChange}
-            placeholder="Enter your password"
-            required
+            className="w-full border-b border-stone-300 px-4 py-1 text-sm focus:outline-none focus:border-amber-600"
           />
 
- {/* <InputField
-            label="enum"
-            type="enum"
-            name="enum"
-            value={form.enum}
+          <select
+            name="role"
+            value={form.role}
             onChange={handleChange}
-            placeholder="Enum"
-            required
-          /> */}
+            className="w-full border-b border-stone-300 px-4 py-1 text-sm bg-white focus:outline-none focus:border-amber-600"
+          >
+            <option value="user">Reader</option>
+            <option value="admin">Admin</option>
+          </select>
 
-
-          <Button type="submit" className="w-full bg-green-500 text-white py-2 rounded-lg">
-            Register
-          </Button>
+          {/* Button */}
+          <button
+            type="submit"
+            className="w-full mt-4 flex items-center justify-center gap-2 border border-amber-600 text-amber-600 py-1 hover:bg-amber-600 hover:text-white transition-all duration-300"
+          >
+            CREATE ACCOUNT
+          </button>
         </form>
 
-        <p className="text-sm text-center mt-4">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
-            Login
+        {/* Footer */}
+        <p className="text-sm text-center mt-8 text-stone-500">
+          Already a member?{" "}
+          <Link
+            to="/login"
+            className="text-amber-600 hover:underline font-medium"
+          >
+            Login here
           </Link>
         </p>
       </div>
-    </div>
+    </section>
   );
 };
 
