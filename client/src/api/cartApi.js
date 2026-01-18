@@ -1,53 +1,28 @@
+
+
+
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/cart";
+const API = axios.create({
+  baseURL: "http://localhost:7000/api",
+});
 
-export const addToCart = async (userId,productId, quantity = 1) => {
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.post(
-      `${API_URL}/${userId}/items`,
-      { productId, quantity },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Add to Cart failed:", error);
-    throw error.response?.data || { message: "Failed to add item to cart" };
+// Attach token automatically
+API.interceptors.request.use((req) => {
+  const token = localStorage.getItem("token"); // adjust key if different
+  if (token) {
+    req.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return req;
+});
 
-
-// ✅ Get all cart items
-export const getCart = async (userId) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.get(`${API_URL}/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
-};
-
-// ✅ Update item quantity
-export const updateCartItem = async (productId, quantity) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.put(
-    `${API_URL}/${productId}`,
-    { quantity },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return res.data;
-};
-
-
-// ✅ Remove item from cart
-export const removeCartItem = async (productId) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.delete(`${API_URL}/${productId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+// Create cart
+export const createCart = async ({ user_id }) => {
+  try {
+    const res = await API.post("/carts", { user_id });
+    return res.data;
+  } catch (error) {
+    console.error("Create cart error:", error.response?.data || error.message);
+    throw error.response?.data || { message: "Create cart failed" };
+  }
 };

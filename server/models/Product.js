@@ -27,6 +27,11 @@ const productSchema = new mongoose.Schema(
       ref: "Category", // reference to Categories collection
       required: true,
     },
+    image: {
+      type: String,
+      required: true, // make false if image is optional
+      trim: true,
+    },
   },
   { timestamps: true } // adds createdAt & updatedAt
 );

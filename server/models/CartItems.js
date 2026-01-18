@@ -1,15 +1,18 @@
+
+
+
 const mongoose = require("mongoose");
 
 const cartItemSchema = new mongoose.Schema(
   {
     cart_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Cart", // reference to Cart
+      ref: "Cart",
       required: true,
     },
     product_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Product", // reference to Product
+      ref: "Product",
       required: true,
     },
     quantity: {
@@ -19,7 +22,7 @@ const cartItemSchema = new mongoose.Schema(
       default: 1,
     },
   },
-  { timestamps: true } // adds createdAt & updatedAt
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("CartItem", cartItemSchema);
